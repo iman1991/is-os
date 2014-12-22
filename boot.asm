@@ -24,18 +24,19 @@ puts_loop_exit:
 load:
 mov ax,es
 mov ds,ax
-mov di,0x100
+mov di,0x100; сюда(это логический адрес) считывается 2-8 сектор диска 
+;там находтся ядро  которое занимает сейчас 7 секторов
 mov es,di
 xor bx,bx
 mov ch,0x00
 mov cl,0x02
 mov dl,0
 mov dh,0
-mov ah,2
-mov al,7
+mov ah,2; номер сктора
+mov al,7;количество секторов
 int 0x13
 
-jmp 0x1000             
+jmp 0x1000 ; здесь наше ядро это АБСОЛЮТНЫЙ адрес             
 cld ; направление для строковых команд
 mov ah, 0x0E
 ; номер функции BIOS
@@ -52,4 +53,4 @@ db 'loading Kernel',0
 finish:
 times 0x1FE-finish+start db 0
 db 0x55, 0xAA ; сигнатураs загрузочного сектора
-incbin "kernel.bin"
+incbin "kernel.bin"; здесь мы прикрепляем ядро 
