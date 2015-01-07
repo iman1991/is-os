@@ -1,13 +1,39 @@
+
 section .text
  use16
-org 0x7C00
+ org 0x7C00
 ; наша программа загружается по адресу 0x7C00
 start:
+jmp sstart
+osname: db 'IS_OS  ',0; имя 8 байт 
+sizeSec: dw 512       ; размер сектора
+countSecKlast: db 4   ; число секторов в кластере 
+countSecRes:  dw 10   ; размер системной области 
+countTab: db 1        ; число фат таблиц
+countDesFile: dw 0    ; число файлов в корневом каталоге
+countSecDisk: dw 2880 ; общее количество секторов на диске 
+typeDisk: db 0x80     ; тип устройства 
+sizeTab: dw 2         ; размер фат  
+countSecTreck: dw 18  ; число секторов на дорожке 
+countDisk: dw 2       ; число головок 
+countSkr: dd   0      ;
+countRes: dd 1440        ; 1440
+;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+indexDisk: db 0;
+res: db 0;
+sign: db 0x29;
+datatime: dd 0;
+diskName: db 'is_os boot ',0;
+nameFS: db 'IS_FSYS',0;
+;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+sstart:
 mov ax, cs
 mov ds, ax ; выбираем сегмент данных
 mov ax, 0x0003
 int 0x10
-;jmp puts_loop_exit
+
 mov si, message
 cld ; направление для строковых команд
 mov ah, 0x0E
@@ -24,19 +50,18 @@ puts_loop_exit:
 load:
 mov ax,es
 mov ds,ax
-mov di,0x100; сюда(это логический адрес) считывается 2-8 сектор диска 
-;там находтся ядро  которое занимает сейчас 7 секторов
+mov di,0x600
 mov es,di
 xor bx,bx
 mov ch,0x00
 mov cl,0x02
 mov dl,0
 mov dh,0
-mov ah,2; номер сктора
-mov al,7;количество секторов
+mov ah,2
+mov al,7
 int 0x13
 
-jmp 0x1000 ; здесь наше ядро это АБСОЛЮТНЫЙ адрес             
+jmp 0x6000             
 cld ; направление для строковых команд
 mov ah, 0x0E
 ; номер функции BIOS
@@ -53,4 +78,4 @@ db 'loading Kernel',0
 finish:
 times 0x1FE-finish+start db 0
 db 0x55, 0xAA ; сигнатураs загрузочного сектора
-incbin "kernel.bin"; здесь мы прикрепляем ядро 
+incbin "hello2.bin"
