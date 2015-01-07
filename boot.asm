@@ -24,7 +24,7 @@ res: db 0;
 sign: db 0x29;
 datatime: dd 0;
 diskName: db 'is_os boot ',0;
-nameFS: db 'FAT16  ,0;
+nameFS: db 'FAT16  ',0;
 ;%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
