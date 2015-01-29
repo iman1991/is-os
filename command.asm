@@ -62,9 +62,9 @@ iexit:
  cmp si,4
  jl iexit
  mov ax,0x5307
- mov bx,0x0001
- mov cx,0x0003
- int 0x15 ; переривание биос завершение программы
+ mov bx,0x0003
+ mov cx,0x0001
+ int 0x15 ; переривание биос выключение ПК
  jmp exit_cmd
 
 ifind: 
