@@ -10,7 +10,9 @@ mov si,msg_sys
 call writeln
 mov cx,0
 mov [icom],cx
+
 call new_int30
+
 run:
  call wr_inf
  push ax
