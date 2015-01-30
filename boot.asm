@@ -50,7 +50,7 @@ puts_loop_exit:
 load:
 mov ax,es
 mov ds,ax
-mov di,0x600
+mov di,0x50
 mov es,di
 xor bx,bx
 mov ch,0x00
@@ -61,7 +61,7 @@ mov ah,2
 mov al,7
 int 0x13
 
-jmp 0x6000             
+jmp 0x500             
 cld ; направление для строковых команд
 mov ah, 0x0E
 ; номер функции BIOS
