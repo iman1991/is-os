@@ -1,6 +1,6 @@
 section .text
 use16
-org 0x1000
+org 0x500
 start:
 mov [mx],dh
 mov [my],dl
@@ -10,7 +10,7 @@ mov si,msg_sys
 call writeln
 mov cx,0
 mov [icom],cx
-
+call new_int30
 run:
  call wr_inf
  push ax
