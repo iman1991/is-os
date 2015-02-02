@@ -1,0 +1,4 @@
+size_str: db 0xff
+count_mem: dw 0x300
+mem_tab: dw 0xfb00
+
