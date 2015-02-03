@@ -1,6 +1,7 @@
 section .text
 use16
-org 0x500
+org 0 ;здесь тогда 0
+incbin "i87h.bin" ;попробоем так подключить драйвер
 start:
 mov [mx],dh
 mov [my],dl
