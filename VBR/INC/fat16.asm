@@ -118,8 +118,8 @@ GetMemoryForRoot__ES:
 ;       pop      ax
 ;       add      ax,0x3000
 ;       add      ax,0x3000
-       push     word 50h ;----------------->address for kernel.bin (0050:0000)
-       pop      es
+ push word KERNEL_SEGMENT
+pop es
 ;       mov      es,ax
        xor      di,di ; es/di -> buffer for the Root
 ;       pop      ax
