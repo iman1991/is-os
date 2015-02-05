@@ -1,6 +1,6 @@
 ;vbr.asm
- 
- 
+ SEG_STACK=7000h
+KERNEL_SEGMENT = 50h 
        ISOS_PARTITION_START_SECTOR_LBA = 0x26
        ISOS_PARTITION_SIZE_SECTORS = 0x0eb516
  
@@ -43,8 +43,9 @@ start:
  
        xor      ax, ax ; initialize all the necessary
        mov      ds, ax ; registers.
+       mov ax,SEG_STACK
        mov      ss, ax
-       mov      sp, 0xFFFF ; Stack..
+       mov      sp, 0xFF ; Stack..
  
        mov      [BPB.DrvNum], dl
  
@@ -92,14 +93,16 @@ mov si, [es:di+1Ah] ; si = cluster no.
  
        call     GetFirstDataAreaSector
  
-       MAX_SIZE_OF_FILE_IN_CLUSTERS=0x0ffff
-       mov      cx,MAX_SIZE_OF_FILE_IN_CLUSTERS
+   ;    MAX_SIZE_OF_FILE_IN_CLUSTERS=0x0ffff
+    ;   mov      cx,MAX_SIZE_OF_FILE_IN_CLUSTERS
 ReadNextCluster:
-       push     cx
+   ;    push     cx
        call     ReadClusterFat16
  
-       pop      cx
-       dec      cx
+  ;     pop      cx
+ ;      dec      cx
+ ;      jz       FatalError
+       cmp si,word 0
        jz       FatalError
  
 ; Type checking \
@@ -112,8 +115,8 @@ ReadNextCluster:
  
 .Done:
  
-;here address for load kernel.bin like as into inc/fat16.asm -see 
-jmp 0x0050:0x0000 ; jump to loaded file (64kb in mem)
+ 
+jmp KERNEL_SEGMENT:0x0000 ; jump to loaded file (64kb in mem)
  
  
 ; Reads a FAT16 cluster
@@ -136,18 +139,18 @@ ReadClusterFat16:
  
 .noInit:
        mov      es,ax
-       mov      di,word [.iFileInMemoryOff]
+ ;      mov      di,word [.iFileInMemoryOff]
 .okEs_Di:
        pop      ax
  
-       movzx    ecx,byte [BPB.SecPerClus]
+       movzx    cx,byte [BPB.SecPerClus]
  
        call     ReadSectors
  
        push     es
        pop      ax
        mov      word [.iFileInMemorySeg],ax
-       mov      word [.iFileInMemoryOff],di
+ ;      mov      word [.iFileInMemoryOff],di
  
        call     GetMemoryForFAT16__ES
        pop      si
@@ -163,25 +166,16 @@ mov si,word [es:si]
        ret
  
 .iFileInMemorySeg dw 0
-.iFileInMemoryOff dw 0
+;.iFileInMemoryOff dw 0
  
  
 FatalError:
-mov si,.msg
-       mov      ah, 0Eh
-       mov      bx, 7
- 
-       lodsb
+mov ax,0e47
        int      10h ; 1st char
-       lodsb
-       int      10h ; 2nd char
- 
  xor      ax,ax
        int      0x16
        int      0x19
  
- 
-.msg db '??'
  
 ;read sectors BIOS
  
@@ -191,14 +185,33 @@ mov si,.msg
 ;cx - sector count
  
 ReadSectors:
+
+       push     cx
+       call     ReadSector
+       pop      cx
+;Adjust es eax (di=0 all times)
+.l1:
+       mov      dx,es
+       add      dx,20h
+       mov      es,dx
+       inc      eax
+       dec      cx
+       jnz      .l1
+ ret
+
+
+ReadSector:
        mov      [.packet_Buffer_Segment],es
-       mov      [.packet_Buffer_Offset],di
+;       mov      [.packet_Buffer_Offset],di
        mov      [.packet_LBA],eax
        mov      [.packet_Sector_Count],cx
        mov      dl,[BPB.DrvNum]
        mov      si,.packet
        mov      ah,42h
        int      13h
+       cmp      ah,0
+       jne      FatalError 
+
        ret
  
  
@@ -214,6 +227,8 @@ include 'inc/fat16.asm'
 ; set the BOOT-signature at byte 510. ;
        rb       boot+512-2-$
 db 0x55, 0xAA
+
+ 
  
  
 ;EOF
