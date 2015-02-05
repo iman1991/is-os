@@ -112,8 +112,8 @@ ReadNextCluster:
  
 .Done:
  
- 
-jmp 0x0060:0x0000 ; jump to loaded file (64kb in mem)
+;here address for load kernel.bin like as into inc/fat16.asm -see 
+jmp 0x0050:0x0000 ; jump to loaded file (64kb in mem)
  
  
 ; Reads a FAT16 cluster
