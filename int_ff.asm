@@ -26,11 +26,11 @@ cmp ah,11h
 jne .memload
 sub bx,0x1000
 mov ax,bx
-mov bx,[size_str]
+mov bx,size_str
 div bx
 mov si,ax
 mov ax,cx
-mov bx,[size_str]
+mov bx,size_str
 div bx
 cmp dx,0
 je .loop11
@@ -112,7 +112,9 @@ cmp ah,1
  pop ax
  pop ax
  xor ax,ax
- jmp dword 0x0:run
+ mov ax,KERNEL_SEGMENT
+ mov ds,ax
+jmp dword KERNEL_SEGMENT:run
 .exit:
 
 
