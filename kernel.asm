@@ -1,7 +1,10 @@
 section .text
 use16
-org 0 ;здесь тогда 0
+org 0x00
 start:
+mov ax,cs
+mov ds,ax
+;настройка сигментных регистров.
 mov [mx],dh
 mov [my],dl
 mov si,msg
@@ -28,11 +31,6 @@ call read_key
 pop ax  
 call cmd
 jmp run 
-seg_krn:
- dw 0;
- 
-
-
 
 rt:   db '~$ ',0 ;
 msg:
@@ -47,5 +45,6 @@ db 'the system is booting',0
 %include "trask.asm"
 %include "int_ff.asm"
 %include  "mem.asm"
-incbin "i87h.bin" ;попробоем так подключить драйвер
+mov si,end_ker
+end_ker: times KERNEL_SIZE-end_ker+start db 0 ; выравниваю по ядро 512 байт 
 bufer:
