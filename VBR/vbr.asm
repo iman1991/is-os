@@ -38,6 +38,7 @@ BPB:
 .FilSysType rb 8 ;Not used here
  
 ; starting point of bootsector code
+; точка входа
 start:
        cli
  
