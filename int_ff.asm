@@ -75,15 +75,17 @@ mov si,ax
 ;то вычесляем адрес, иначе переходим наследующую точку   
  mov bx,si
  sub si,[.count10]
- mov al,0x1f  
+ mov al,0x1f
+ xor bx,bx
+ mov es,bx
 .loop10i:
- mov [mem_tab+si],al
+ mov [es:mem_tab+si],al
  inc si 
  cmp si,bx 
  jl .loop10i
- mov ax,bx
- mov bx,[size_str]
- mul bx
+ mov ax,bx;
+ mov bx,[es:size_str]
+ mov bx
  inc dx
  shl dx,12
  shr ax,4
