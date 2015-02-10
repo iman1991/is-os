@@ -4,7 +4,7 @@ api37.txt
        --------------------------------------------------------------
 ;use file read API:
  
-FileName db 'FILE TXT'            ;spaces! ,size=11bytes!
+FileName db 'FILE    TXT'            ;spaces! ,size=11bytes!
 file_data_buf rb SIZE_OF_READED_FILE_BYTES
        ...
        mov      es,YOUR_SEG_FOR_FILE_BUF
