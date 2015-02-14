@@ -22,6 +22,13 @@ call new_int30;
 mov ah,0x1
 int 30h
 
+;start driver of file system (fat16)-\
+       pushad
+       mov      dx,word DriverFS
+       call     SetDrv  ;set int 37h
+       popad
+;------------------------------------/
+
 run:
 ;call wr_inf
 push ax
