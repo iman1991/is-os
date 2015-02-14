@@ -7,8 +7,7 @@ mov ds,ax
 ;настройка сигментных регистров.
 mov [mx],dh
 mov [my],dl
-mov si,msg
-call writeln
+
 mov si,msg_sys
 call writeln
 mov cx,0
@@ -40,8 +39,7 @@ call cmd
 jmp run 
 
 rt:   db '~$ ',0 ;
-msg:
-db '...done!',0
+
 msg_sys:
 db 'the system is booting',0
 %include "data.inc"
