@@ -58,6 +58,7 @@ db 'the system is booting',0
 align 16
 DriverFS:
   incbin   "drv/fs/fsdrv.bin" ;this file is precompiled (fasm)
+ret ;
 ;-/
  
 align 512 
