@@ -52,8 +52,17 @@ db 'the system is booting',0
 %include "trask.asm"
 %include "int_ff.asm"
 %include  "mem.asm"
-%include "setdrv.asm"
+%include "setdrv.asm" ;передаёт управление на drv/fs/fsdrv.bin
 
-mov si,end_ker
-end_ker: times KERNEL_SIZE-end_ker+start db 0 ; выравниваю по ядро 512 байт 
+;-\
+align 16
+DriverFS:
+  incbin   "drv/fs/fsdrv.bin" ;this file is precompiled (fasm)
+;-/
+ 
+align 512 
 bufer:
+
+;mov si,end_ker
+;end_ker: times KERNEL_SIZE-end_ker+start db 0 ; выравниваю по ядро 512 байт 
+;bufer:
