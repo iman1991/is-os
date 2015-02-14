@@ -10,4 +10,4 @@ is-os
 командой  sudo sh ./run.sh
 
 
-P.S. для полной работы нужно загрузить I87H.BIN
+теперь  I87H.BIN & I37H.BIN  внутри FSDRV.BIN
