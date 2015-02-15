@@ -5,12 +5,12 @@ start:
 mov ax,cs
 mov ds,ax
 
-;start driver of file system (fat16)-\
+;start driver of file system (fat16)-
        pushad
        mov      dx,word DriverFS
        call     SetDrv  ;set int 37h
        popad
-;------------------------------------/
+;------------------------------------
 
 ;настройка сигментных регистров.
 mov [mx],dh
@@ -54,12 +54,12 @@ db 'the system is booting',0
 %include  "mem.asm"
 %include "setdrv.asm" ;передаёт управление на drv/fs/fsdrv.bin
 
-;-\
+;-
 align 16
 DriverFS:
   incbin   "drv/fs/fsdrv.bin" ;this file is precompiled (fasm)
-ret ;
-;-/
+retf ;
+;-
  
 align 512 
 bufer:
