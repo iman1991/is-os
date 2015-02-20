@@ -52,8 +52,6 @@ jmp .exit
 ;cx - рамер 
 ;выход 
 ;ax-сегмент 
-; 
-.count10 dw 0
 cmp ah,0x10
 jne .ret_krn
 xor ax,ax
@@ -100,7 +98,7 @@ jmp .exit
  jle .loop10
 .exit10:
 jmp .exit
-
+.count10 dw 0
 
 
 
@@ -113,10 +111,14 @@ cmp ah,1
  jne .exit 
  pop ax
  pop ax
+ pop ax
  xor ax,ax
  mov ax,KERNEL_SEGMENT
  mov ds,ax
-jmp dword KERNEL_SEGMENT:run
+ pushf
+ push ds
+ mov si,run 
+ push si 
 .exit:
 
 
