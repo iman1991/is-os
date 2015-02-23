@@ -1,6 +1,6 @@
 ;drv.asm
  
- 
+       jmp      start
 ;All it will be overwrite - from boot to 0x036
 boot:
        jmp      start
