@@ -4,14 +4,34 @@ api37.txt
        --------------------------------------------------------------
 ;use file read API:
  
-FileName db 'FILE    TXT'            ;spaces! ,size=11bytes!
-file_data_buf rb SIZE_OF_READED_FILE_BYTES
+
+FileName db 'FILE    TXT' ;spaces! ,size=11bytes!
+may be: 'file.txt'
+        'file.t',0 (if ext<3, then must be zero ended)
+        'FiLe.TxT' - all valid names   
+
+align 16
+buf: ;here will be data of reading file
        ...
-       mov      es,YOUR_SEG_FOR_FILE_BUF
-       mov      di,file_data_buf  ; es:di - memory 
+ 
        mov      si,FileName
-       xor      eax,eax           ;ax=0 read file fn
+mov di,buf
+;es= seg of buf
+mov dl,80h ;-num of drive
+       xor      eax,eax
        int      37h
+
+return al= 
+          FILE_OK  = 0
+          FILE_NOT_FAUND = 1
+          DISK_IO_ERROR = 2
+          INIT_ERROR = 3
+          BIOS_FUN_42_ERROR = 4
+          API_TARGET_OFFSET_ALIGN_ERROR = 5
+          FILE_NAME_IS_BAD = 6
+
+return ecx = size of readed file 
+ 
        --------------------------------------------------------------
  
  
@@ -19,7 +39,6 @@ file_data_buf rb SIZE_OF_READED_FILE_BYTES
        --------------------------------------------------------------
 ;use debug msg API:
  
-;print text
 TextToPrint db 'some text$',0 ;$=terminator of string (dos string format)
        ...
  
@@ -28,7 +47,7 @@ TextToPrint db 'some text$',0 ;$=terminator of string (dos string format)
        int      87h
  
  
-;off debug msgs 
+;off debug msgs
        mov      ax,1
        int      87h
  

@@ -126,6 +126,12 @@ incCur:
 ; Subfunction to display ascii(z,$) string
 ; Input: si = string
 print:
+ 
+;mov dx,si
+;mov ah,9
+;int 21h
+;ret
+ 
        .NO_USAGE = 0x0fa
  
        call     SaveRegs32

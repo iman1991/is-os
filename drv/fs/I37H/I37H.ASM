@@ -2,63 +2,26 @@
  
        include  'inc\macro.asm'
  
+       FILE_OK  = 0
+       FILE_NOT_FAUND = 1
+       DISK_IO_ERROR = 2
+       INIT_ERROR = 3
+       BIOS_FUN_42_ERROR = 4
+       API_TARGET_OFFSET_ALIGN_ERROR = 5
+       FILE_NAME_IS_BAD = 6
  
-FILE_NOT_FAUND = 0x01
-FILE_OK = 0x02
-DISK_IO_ERROR = 0x03
-INIT_ERROR = 0x04
- 
-       org      5120
+       org      2560 ;size of i87h.bin
        use16
  
-;file 'i87h.bin'
-; push cs
-; pop ax
-; mov ds,ax
-; mov es,ax
- 
-;init driver All here>>>>>>>>>>>>>>>>
- 
-       mov      dl,80h
-       mov      [Read.DriveNumber],dl
- 
- 
-       mov      ax,37h ;номер прерывания
-       mov      word bx,new_handler ;адрес обработчика
+;init driver - set new handler for 37h interrupt
+       mov      ax,37h
+       mov      word bx,new_handler
        call     hook ;\int\hook.asm
  
        DbgDspl  '> set new int = 37h '
        xor      eax,eax
        int      16h
-       jmp      exit
- 
- 
- 
-;mov di,boot ; set di=memory for BPB (+3 bytes at start)
-;mov cx,SIZE_BPB
-GetMBR_GetVBR_GetBPBfromIt:
-       pusha
- 
-       include  'initBPB.asm' ;return ax=memory BPB+3bytesStart
- 
-       mov      [.saveTmpBPBptr],ax
-       popa
-       mov      si,[.saveTmpBPBptr]
-       mov      cx,0x036
-.l1:
-       mov      al,[si]
-       mov      [di],al
-       inc      si
-       inc      di
-       dec      cx
-       jnz      .l1
- 
-       clc
-       ret
-.saveTmpBPBptr dw 0
-.err:
-       stc
-       ret
+       jmp      Wexit
  
  
        include  'inc\int\hook.asm'
@@ -68,24 +31,20 @@ GetMBR_GetVBR_GetBPBfromIt:
        include  'inc\fat16.asm' ;main file for fat16 subprogs
        include  'inc\fatval.asm' ;data file for fat16 subprogs
  
- 
        include  'inc\data.asm'
-       include  'inc\biosdisk.asm'
+       include  'inc\bios42.asm'
        include  'inc\disp512.asm'
+ 
        include  'inc\esc.asm'
        include  'inc\dec.asm'
        include  'inc\hex.asm'
-       include  'inc\memman.asm'
  
+       include  'inc\fnconv.asm'
+       include  'inc\drv.asm'
  
-ReadFileMain:
-mov [ExitCod],byte INIT_ERROR
-       include  'drv.asm'
- 
- align 512
-rb 511
-db 'x'
-exit:
+       align    8 ;if next cod must be aligned 16
+db '12345678'
+Wexit: ;goto next cod in kernel
  
  
 ;EOF

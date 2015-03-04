@@ -5,16 +5,14 @@
 ;si = ptr to data (512bytes)
 ;eax = num of sector (LBA)
 DisplayToUser:
-pusha
-;push ax
-shr eax,16
-push ax
+       pusha
+       shr      eax,16
+       push     ax
        DbgDsplLine
-DbgDspl '> sector # '
-pop ax
-shl eax,16
-;pop ax
-popa
+       DbgDspl  '> sector # '
+       pop      ax
+       shl      eax,16
+       popa
  
        .SIZE_OF_DATA = 512 ; size of sector - must be 512
        pusha
@@ -24,10 +22,10 @@ popa
        pusha
        mov      cx,word .SIZE_OF_DATA/2
  
-jmp .newLineSkipFirst16byte
+       jmp      .newLineSkipFirst16byte
  
 .newLine:
-call PrintASCII_16byte
+       call     PrintASCII_16byte
 .newLineSkipFirst16byte:
  
        pusha
@@ -51,7 +49,7 @@ call PrintASCII_16byte
        add      eax,[.TotalCounter]
  
        DbgDsplEAXdFIXsize
-       DbgDspl  '   '
+       DbgDspl  ' '
  
        popa
  
@@ -73,7 +71,7 @@ call PrintASCII_16byte
        dec      cx
        jnz      .l1
  
-call PrintASCII_16byte
+       call     PrintASCII_16byte
  
        DbgDsplLine
 ;DbgDspl 'sector # '
@@ -88,29 +86,27 @@ call PrintASCII_16byte
 .TotalCounter dd 0
  
 PrintASCII_16byte:
-pusha
-push si
+       pusha
+       push     si
        DbgDspl  ' '
-pop si
-push si
-pop di
-sub si,word 16
+       pop      si
+       push     si
+       pop      di
+       sub      si,word 16
 .nextAL:
-mov al,byte [si]
-inc si
-cmp si,di
-ja .exit
-pusha
-    DbgDsplALmm
-popa
+       mov      al,byte [si]
+       inc      si
+       cmp      si,di
+       ja       .exit
+       pusha
+       DbgDsplALmm
+       popa
  
-jmp .nextAL
+       jmp      .nextAL
  
 .exit:
-     popa
-ret
- 
- 
+       popa
+       ret
  
  
 ;EOF

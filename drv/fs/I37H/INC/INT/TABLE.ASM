@@ -2,32 +2,20 @@
  
  
 int_table:
-dw api_ax_0_ReadFile;video_0_print ;ax=0
+dw api_ax_0_ReadFile
  
-macro end_int
-{
+       macro    end_int
+       {
        jmp      int_exit ;intman.asm
-}
+       }
  
  
+;#0 fun read file
 api_ax_0_ReadFile:
  
-       push     es
-;restore ds
-       mov      word ax,[saveall16_seg_regs.ds_reg]
-       mov      es,ax
-;restore si
-       mov      dword esi,[saveall32regs.esireg]
-;       mov      dword edi,[saveall32regs.edireg]
- 
-call ReadFileMain ;drv.asm
- 
- 
-       mov      dword edi,[saveall32regs.edireg]
- 
-       pop      es
+       call     ReadFileMain ;drv.asm
+       mov      dword [returnEcx],ecx
        end_int
- 
  
  
 ;EOF

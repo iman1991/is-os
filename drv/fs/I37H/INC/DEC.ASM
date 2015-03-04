@@ -2,27 +2,27 @@
  
  
 ;eax max number = 4294967295
-;перевод числа в регистре eax в десятичное число в виде ASCIIZ строки
-; вывод: esi = адрес строки
+;convert number in eax to text string (ASCIIZ)
+;out: esi = ptr to str
  
 Bin2AsciiDecFIX:
  
-mov [Bin2AsciiDec.flagNoDeleteZ], 1
-jmp Bin2AsciiDec.work
+       mov      [Bin2AsciiDec.flagNoDeleteZ], 1
+       jmp      Bin2AsciiDec.work
  
 Bin2AsciiDec:
-mov [.flagNoDeleteZ], 0
+       mov      [.flagNoDeleteZ], 0
 .work:
  
-       mov      ecx,dword 9 ;количество разрядов - 1
+       mov      ecx,dword 9 ;10 - 1
        xor      edx,edx
        xor      edi,edi
  
-;обнуляем индекс таблицы
+;reset index of table
        mov      [.Index],dword 0
  
        add      edi,.String
-       mov      ebx,dword 1000000000 ;10 разрядов
+       mov      ebx,dword 1000000000 ;10 pos
  
 .l1:
        cmp      eax,ebx
@@ -42,7 +42,6 @@ mov [.flagNoDeleteZ], 0
        mov      eax,ebx
  
 ;--------------------------------------------\
-; push ecx
        mov      [.Regs32bitTempSave+4],dword ecx
  
  
@@ -52,13 +51,11 @@ mov [.flagNoDeleteZ], 0
        add      eax,dword 4
        mov      [.Index],dword eax
  
-       mov      eax,dword [ebx] ;результат
+       mov      eax,dword [ebx] ;result
  
-; pop ecx
        mov      ecx, dword [.Regs32bitTempSave+4]
  
        mov      ebx,eax
-; pop eax
        mov      eax, dword [.Regs32bitTempSave]
  
        xor      edx,edx
@@ -77,8 +74,8 @@ mov [.flagNoDeleteZ], 0
        call     .DeleteFirstZeroChars
        ret
  
-.String rb 12 ;буфер для формирования ASCIIZ строки
-.Regs32bitTempSave dd 0,0 ;здесь место для 32бит регистров
+.String rb 12 ;here create strig (ASCIIZ)
+.Regs32bitTempSave dd 0,0 ;here 32bit regs
  
 .Index dd 0
 .Table:
@@ -92,10 +89,10 @@ dd 100
 dd 10
  
 .DeleteFirstZeroChars:
-mov al,[.flagNoDeleteZ]
-test al,al
-jz .workDel
-ret
+       mov      al,[.flagNoDeleteZ]
+       test     al,al
+       jz       .workDel
+       ret
 .workDel:
  
        mov      cl,12
@@ -123,7 +120,4 @@ DbgDspl ' error: inc\dec.asm '
 .errDefStr db 'err$',0
  
  
- 
- 
 ;EOF
- 

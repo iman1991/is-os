@@ -35,12 +35,6 @@ GetFirstSectorOfCluster:
 .tmpEax dd 0
  
  
- 
- 
- 
- 
-;call GetFirstDataAreaSector
- 
 GetFirstDataAreaSector:
        pusha
        call     CalcSzRootSectors
@@ -104,9 +98,12 @@ CalcSzRootSectors:
  
 GetMemoryForFAT16__ES:
        push     ax
-       push     cs
-       pop      ax
-       add      ax,0x1000
+; push cs
+; pop ax
+ 
+       call     GetFreeMemorySeg
+ 
+; add ax,0x1000
        mov      es,ax
        xor      di,di ; es/di -> buffer for the FAT
        pop      ax
@@ -114,16 +111,46 @@ GetMemoryForFAT16__ES:
  
 GetMemoryForRoot__ES:
        push     ax
-       push     cs
-       pop      ax
-       add      ax,0x3000
+; push cs
+; pop ax
+ 
+       call     GetFreeMemorySeg
+ 
+       add      ax,0x2000
        mov      es,ax
        xor      di,di ; es/di -> buffer for the Root
        pop      ax
        ret
  
+GetMemoryForFileReading_ES_DI:
+       push     ax
+       mov      edi,dword [saveall32regs.edireg]
+       mov      ax,di
+       shl      al,4
+       test     al,al
+       jz       .ok
+       mov      [ExitCod],byte API_TARGET_OFFSET_ALIGN_ERROR
+       jmp      FatalError
+.ok:
+       shr      di,4
+       mov      ax,word [saveall16_seg_regs.es_reg]
+       add      ax,di
+       mov      es,ax
+       xor      edi,edi ; es/di -> buffer for the File
+       pop      ax
+       ret
+ 
+ 
+FreeMemoryForWork dw 0
+ 
+SetFreeMemorySeg:
+       mov      [FreeMemoryForWork],ax
+       ret
+ 
+GetFreeMemorySeg:
+       mov      ax,[FreeMemoryForWork]
+       ret
+ 
+ 
  
 ;EOF
- 
- 
- 

@@ -1,76 +1,41 @@
 ;drv.asm
  
-       jmp      start
-;All it will be overwrite - from boot to 0x036
-boot:
-       jmp      start
-       nop
-bsOemName db 'XXXXXXXX' ; 0x03
  
-; BPB /
-bpbBytesPerSector dw 0 ; 0x0B
-bpbSectorsPerCluster db 0 ; 0x0D
-bpbReservedSectors dw 0 ; 0x0E
-bpbNumberOfFATs db 0 ; 0x10
-bpbRootEntries dw 0 ; 0x11
-bpbTotalSectors dw 0 ; 0x13
-bpbMedia db 0 ; 0x15
-bpbSectorsPerFAT dw 0 ; 0x16
-bpbSectorsPerTrack dw 0 ; 0x18
-bpbHeadsPerCylinder dw 0 ; 0x1A
-bpbHiddenSectors dd 0 ; 0x1C
-bpbTotalSectorsBig dd 0 ; 0x20
-;/ BPB
+ReadFileMain:
  
-bsDriveNumber db 0 ; 0x24
-bsUnused db 0 ; 0x25
-bsExtBootSignature db 0 ; 0x26
-bsSerialNumber dd 0 ; 0x27
-bsVolumeLabel db 'XXXXXXXX' ; 0x2B
-bsFileSystem db 'XXXXXX' ; 0x36
+       mov      [ExitCod],byte INIT_ERROR
  
-       SIZE_BPB = $-boot
+;here set memory for work
+       push     ax
+       push     cs
+       pop      ax
+       add      ax,0x1000
+       call     SetFreeMemorySeg
+       pop      ax
  
-TestFile db 'xxxxxxxxxxx',0
  
-start:
-       keyWx
-       push     es
-       mov      word ax,[saveall16_seg_regs.ds_reg]
-       mov      es,ax
+       call     SetDrvNumForBios42fn
  
-       mov      di,TestFile
-       mov      cx,11
-.copyName:
-mov al,[es:si]
-       mov      [di],al
-       inc      si
-       inc      di
-       dec      cx
-       jnz      .copyName
- 
-       mov      si,TestFile
+       push     cs
        pop      es
  
-       mov      [ptrToFileName],si
-       keyWx
  
+ 
+push cs
+pop es
        call     ReadFile_IS_OS
-; call GetMemoryForFileReading_ES_DI
  
-; mov si,[ptrToFileName]
- 
+       mov      ecx,dword [szFileBytes]
        ret
  
  
 ReadFile_IS_OS:
-       push     cs
-       pop      ds
+ 
        DbgDsplLine
 DbgDspl '> Read BPB from realdisk: '
        mov      [ExitCod],byte DISK_IO_ERROR
        call     initBPB_fromRealDisk
-       jc       Error
+ 
 ; Reserve some memory for a FAT16 image (128KB max) and load it whole
  
        call     CalcFatsz_AX_CX ;ax=FAT size in paragrafs, cx= in sectors
@@ -191,7 +156,7 @@ DbgDspl '> Sector (abs) of start Root: '
  
        mov      dx, 512 ; dx = number of root entries
 ; ds/si -> program name
-       mov      si, FileName11b
+call GetFileName_si ;return user file name
  
 ; Looks for a file with particular name
 ; Input: DS:SI -> file name (11 chars)
@@ -212,7 +177,7 @@ cmp byte [es:di], ch
        dec      dx
        jnz      .Cycle ; next root entry
 .Failed:
-       DbgDspl  '! FFFFFFFFFFFFFFFF !'
+       DbgDspl  '( File not found )'
        mov      [ExitCod],byte FILE_NOT_FAUND
        jmp      Error
  
@@ -297,7 +262,7 @@ ReadNextCluster:
        DbgDspl  ' ------ '
        mov      [ExitCod],byte FILE_OK
  
-call movedReadedFileData
+; call movedReadedFileData
  
        ret
  
@@ -360,7 +325,8 @@ ReadSector:
 ;cx - sector count
  
        push     cx
-       call     Read.ReadSectors
+       read42
+ 
        pop      cx
  
 ;Adjust es eax (di=0 all times)
@@ -375,65 +341,11 @@ ReadSector:
  
 initBPB_fromRealDisk:
  
-;-[2]
-       mov      si,[ptrToFileName]
-       mov      di,FileName11b
-       call     CopySaveFileName
-       jc       .err
- 
-;-[3]
 ;get real sector
        mov      di,boot ; set di=memory for BPB (+3 bytes at start)
        mov      cx,SIZE_BPB
-       mov      dl,80h
-       call     GetMBR_GetVBR_GetBPBfromIt
-       jc       .err
+       call     GetMBR_GetVBR_GetBPBfromIt ;copy bpb from disk to di (cx=size)
  
-;-[0]
-       mov      dl,80h
-       mov      [bsDriveNumber], dl ; store boot drive number
- 
-       clc
-       ret
- 
-.err:
-       stc
-       ret
- 
-ptrToFileName dw 0 ;init from program
- 
- 
- 
-CopySaveFileName:
-       FILE_NAME_LEGHT = 11 ;for fat must be 11
-       mov      cl,byte FILE_NAME_LEGHT
-.l1:
-       mov      al,[si]
-       test     al,al
-       jz       .err
-       cmp      al,'.'
-       jz       .err
-       inc      si
-       mov      [di],al
-       inc      di
-       dec      cl
-       jnz      .l1
-       clc
-       ret
-.err:
-       stc
-       ret
- 
- 
- 
-GetMemoryForFileReading_ES_DI:
-       push     ax
-       push     cs
-       pop      ax
-       add      ax,0x3000 ;some as root
-       mov      es,ax
-       xor      di,di ; es/di -> buffer for the File
-       pop      ax
        ret
  
  
@@ -460,37 +372,27 @@ AdjustSegmentForNextSector:
        pop      si di
        ret
  
-Error:
-FatalError:
-       DbgDsplLine
-       DbgDspl  'Fatal Error.'
-       end_int
  
-movedReadedFileData:
-pushad
-push es fs
-call GetMemoryForFileReading_ES_DI
-         push di
+SetDrvNumForBios42fn:
+       push     dx
+       mov      edx,dword [saveall32regs.edxreg] ;api dl= 80h|81h
  
-       mov      dword edi,[saveall32regs.edireg] ;get di from parmeters
+       cmp      dl,80h
+       jz       .driveNumIsOk
  
-       mov      word ax,[saveall16_seg_regs.es_reg]   ;get es /es:di - target
-       mov      fs,ax
-pop si
+       cmp      dl,81h
+       jz       .driveNumIsOk
  
-mov ecx,dword [szFileBytes]
+       mov      dl,80h ;default number
+.driveNumIsOk:
+       mov      [ReadSectors.DriveNumber80_81],dl
+       pop      dx
+       ret
  
-.l1:
-mov al,[es:si]
-mov [fs:di],al
-    inc di
-inc si
-dec ecx
-jnz .l1
  
-pop fs es
-popad
-ret
+;ptrToFileName dw 0 ;init from program
+szFileBytes dd 0
+ 
  
  
 ;EOF

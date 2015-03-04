@@ -1,26 +1,79 @@
 ;data.asm
  
  
-;ptr to dword value = first sector on first patr
        MBR_1ST_SECTOR_1ST_PATR_OFFSET = 454
+       BS_MBR_OFFSET_4BYTES_ID_MICROSOFT = 440
  
  
-ReadFatBS:
-keyWx 
-       DbgDspl  '> Read first sector from 80h . '
+;in: eax=sector (LBA)
+ReadVBR:
+;       mov      di,Fat_32_BPB
+       mov      di,Fat_12_16_BPB
+       mov      cx,1 ; SecToLoad
+       read42 ; - - - - - - - - - - - - > now read VBR from hdd
+       ret
  
+ 
+;mov di,boot ; set di=memory for BPB (+3 bytes at start)
+;mov cx,SIZE_BPB
+GetMBR_GetVBR_GetBPBfromIt:
+       pusha
+ 
+       DbgDspl  '>BS from hdd BIOS number = '
+mov al,byte [ReadSectors.DriveNumber80_81]
+       DbgDsplALh
+       DbgDspl  'h.'
+ 
+       call     .ReadSector0_MBR
+ 
+       mov      eax,[OffsetToVolimeFromStartDiskAbs]
+       call     ReadVBR
+       mov      si,Fat_12_16_BPB
+       mov      di,Fat_32_BPB ;si=di (virtual)
+ 
+ 
+;input:
+;si = ptr to data (512bytes)
+;eax = num of sector (LBA)
+       push     di
+       mov      eax,[OffsetToVolimeFromStartDiskAbs]
+       call     DisplayToUser ;disp512.asm
+       keyWx
+       pop      si
+       mov      eax,[OffsetToVolimeFromStartDiskAbs]
+       call     DisplayToUser ;disp512.asm
+ 
+       call     .DisplayBS_FAT
+ 
+       popa ;restore cx ,di
+       mov      si,word Fat_12_16_BPB
+.l1:
+       mov      al,[si]
+       mov      [di],al
+       inc      si
+       inc      di
+       dec      cx
+       jnz      .l1
+ 
+       ret
+ 
+ 
+.ReadSector0_MBR:
+ 
+       keyWx
+       DbgDspl  '> Read first sector (MBR?). '
  
        push     ds
        pop      es
        mov      di, .Buf512
        mov      cx,1 ; SecToLoad
        xor      eax,eax ;mbr sector 1th
-       call     Read.ReadSectors
+       read42 ; - - - - - - - - - - - - > now read MBR from hdd
  
        mov      si, .Buf512
        xor      eax,eax ;mbr sector 1th
        call     DisplayToUser ;disp512.asm
- keyWx
+       keyWx
 DbgDspl '> Microsoft disk ID (4bytes): '
  
  
@@ -35,29 +88,17 @@ DbgDspl '> 1 patrition start (4 bytes LBA sector): '
        mov      bx, MBR_1ST_SECTOR_1ST_PATR_OFFSET
        add      bx,word .Buf512
        mov      eax,dword [bx]
-; DbgDsplEAXh
-       DbgDsplEAXh_prefix0x
+       mov      [OffsetToVolimeFromStartDiskAbs],eax
  
+       DbgDsplEAXh_prefix0x
  
        DbgDsplLine
 DbgDspl '> BS from 1th patrition : '
  
-       mov      bx, MBR_1ST_SECTOR_1ST_PATR_OFFSET
-       add      bx, .Buf512
-       mov      eax,dword [bx]
- 
-mov [OffsetToVolimeFromStartDiskAbs],eax
- 
-       call     MapBS
-       mov      si,Fat_12_16_BPB
-       mov      di,Fat_32_BPB
- 
        ret
  
-.Buf512 rb 512
  
- 
-DisplayBS_FAT:
+.DisplayBS_FAT:
  
        DbgDsplLine
 DbgDspl '> Now parsing BS from 1th ptrition FAT12/16: '
@@ -95,40 +136,31 @@ DbgDspl ' >calc : '
        mov      ax,word [Fat_12_16_BPB.RsvdSecCnt]
        push     ax
        mov      bx, MBR_1ST_SECTOR_1ST_PATR_OFFSET
-       add      bx,word ReadFatBS.Buf512
+       add      bx,word .Buf512
        mov      eax,dword [bx]
        DbgDsplEAXd
        DbgDspl  ' = '
  
        mov      bx, MBR_1ST_SECTOR_1ST_PATR_OFFSET
-       add      bx,word ReadFatBS.Buf512
+       add      bx,word .Buf512
        mov      eax,dword [bx]
  
        xor      ebx,ebx
        pop      bx
        add      eax,ebx
        DbgDsplEAXd
- 
- 
- 
- 
        DbgDsplLine
- 
- 
- 
        ret
  
 .parse12_16:
        DbgDsplLine
 DbgDspl '> FAT12 FAT16 spec: '
  
- 
        DbgDsplLine
 DbgDspl ' > BootSig0x29 : '
        mov      al,[_f1216.BootSig]
        DbgDsplALh
        DbgDspl  ' {0x29 only for 12/16} '
- 
  
        DbgDsplLine
 DbgDspl ' > Text 8 bytes ASCII :['
@@ -151,20 +183,16 @@ DbgDspl ' > Text 8 bytes ASCII :['
        DbgDsplALmm
        DbgDspl  ']'
  
- 
        DbgDsplLine
- 
- 
- 
        ret
  
  
 .parse32:
        DbgDsplLine
 DbgDspl '> FAT32 spec: '
+DbgDspl '---It is not writed---'
  
        DbgDsplLine
- 
        ret
  
  
@@ -232,101 +260,112 @@ DbgDspl ' >Media type byte : '
        DbgDsplLine
 DbgDspl ' >Count of sectors in reserved region (dec) : '
  
- 
        mov      ax,word [Fat_12_16_BPB.RsvdSecCnt]
        DbgDsplAXd
- 
- 
        DbgDsplLine
  
        ret
-.ptrBuf dw 0
+.ptrBuf dw ?
  
+virtual at boot
+.Buf512 rb 512
+end virtual
  
+OffsetToVolimeFromStartDiskAbs dd ?
  
+;All it will be overwrite - from boot to 0x036
+boot:
+rb 3
+bsOemName rb 8 ; 0x03
  
-Mbr:
-.patritionLoadedFlagByte db 80h
-.sectorBootFlagWord dw 055aah
+; BPB /
+bpbBytesPerSector rw 1 ; 0x0B
+bpbSectorsPerCluster rb 1 ; 0x0D
+bpbReservedSectors rw 1 ; 0x0E
+bpbNumberOfFATs rb 1 ; 0x10
+bpbRootEntries rw 1 ; 0x11
+bpbTotalSectors rw 1 ; 0x13
+bpbMedia rb 1 ; 0x15
+bpbSectorsPerFAT rw 1 ; 0x16
+bpbSectorsPerTrack rw 1 ; 0x18
+bpbHeadsPerCylinder rw 1 ; 0x1A
+bpbHiddenSectors rd 1 ; 0x1C
+bpbTotalSectorsBig rd 1 ; 0x20
+;/ BPB
  
-BS:
-.ptrBIOSParameterBlock dw ?;Fat_12_16_BPB/Fat_32_BPB
+bsDriveNumber rb 1 ; 0x24
+bsUnused rb 1 ; 0x25
+bsExtBootSignature rb 1 ; 0x26
+bsSerialNumber rd 1 ; 0x27
+bsVolumeLabel rb 8 ; 0x2B
+bsFileSystem rb 6 ; 0x36
  
+       SIZE_BPB = $-boot
+ 
+;Top = Wexit+100h
+;virtual at Top
 Fat_12_16_BPB:
 rb 11
-.BytsPerSec dw 512
-.SecPerClus db 1
-.RsvdSecCnt dw 1; or =32 for fat32
-.NumFats db 2; or 1 for usb-stick
-.RootEntCnt dw 512 ;for fat32 = 0
-.TotSec16 dw ? ;=0 for fat32
-.Media db 0x0f8
-.FATSz16 dw ?; =0 for fat32
-.SecPerTrk dw ?;
-.NumHeads dw ?;
-.HiddSec dd ?;
-.TotSec32 dd 0x10000 ;must be > 0x10000 and .TotSec16=0
+.BytsPerSec rw 1
+.SecPerClus rb 1
+.RsvdSecCnt rw 1; or =32 for fat32
+.NumFats rb 1; or 1 for usb-stick
+.RootEntCnt rw 1 ;for fat32 = 0
+.TotSec16 rw 1 ;=0 for fat32
+.Media rb 1
+.FATSz16 rw 1; =0 for fat32
+.SecPerTrk rw 1;
+.NumHeads rw 1;
+.HiddSec rd 1;
+.TotSec32 rd 1;must be > 0x10000 and .TotSec16=0
 _f1216:
-.DrvNum db 80h ; only OS --!
-.Reserved1 db 0 ;use NT
-.BootSig db 0x29 ;
-.VolID dd ?;
+.DrvNum rb 1; only OS --!
+.Reserved1 rb 1 ;use NT
+.BootSig rb 1 ;
+.VolID rd 1;
 .VolLab rb 11
 .FilSysType rb 8
  
 ; set the BOOT-signature at byte 510. ;
 rb Fat_12_16_BPB+512-2-$
-.Sig db 0x55, 0xAA
+.Sig rb 2
  
  
+virtual at Fat_12_16_BPB
  
 Fat_32_BPB:
 rb 11
-.BytsPerSec dw 512
-.SecPerClus db 1
-.RsvdSecCnt dw 1; or =32 for fat32
-.NumFats db 2; or 1 for usb-stick
-.RootEntCnt dw 512 ;for fat32 = 0
-.TotSec16 dw ? ;=0 for fat32
-.Media db 0x0f8
-.FATSz16 dw ?; =0 for fat32
-.SecPerTrk dw ?;
-.NumHeads dw ?;
-.HiddSec dd ?;
-.TotSec32 dd 0x10000 ;must be > 0x10000 and .TotSec16=0
+.BytsPerSec rw 1
+.SecPerClus rb 1
+.RsvdSecCnt rw 1; or =32 for fat32
+.NumFats rb 1; or 1 for usb-stick
+.RootEntCnt rw 1 ;for fat32 = 0
+.TotSec16 rw 1 ;=0 for fat32
+.Media rb 1
+.FATSz16 rw 1; =0 for fat32
+.SecPerTrk rw 1;
+.NumHeads rw 1;
+.HiddSec rd 1;
+.TotSec32 rd 1 ;must be > 0x10000 and .TotSec16=0
 _f32:
-.FATSz32 dd ?;size of 1fat
-.ExtFlags dw 0
-.FSVer dw 0;must be 0
-.RootClus dd 2
-.FSInfo dw 1
-.BkBootSec dw 6
+.FATSz32 rd 1;size of 1fat
+.ExtFlags rw 1
+.FSVer rw 1;must be 0
+.RootClus rd 1
+.FSInfo rw 1
+.BkBootSec rw 1
 .Reserwed rb 12 ;0000000000000
  
-.DrvNum db 80h
-.Reserved1 db 0 ;use NT
-.BootSig db 0x29 ;
-.VolID dd ?;
+.DrvNum rb 1
+.Reserved1 rb 1 ;use NT
+.BootSig rb 1 ;
+.VolID rd 1;
 .VolLab rb 11
 .FilSysType rb 8
  
 ; set the BOOT-signature at byte 510. ;
 rb Fat_32_BPB+512-2-$
-.Sig db 0x55, 0xAA
+.Sig rb 2
  
- 
- 
-;in: edx:eax=sector (LBA48)/64 bit ?
-MapBS:
-;mov eax,0x026
-       mov      di,Fat_32_BPB
-       mov      cx,1 ; SecToLoad
-       call     Read.ReadSectors
- 
- 
-       mov      di,Fat_12_16_BPB
-       mov      cx,1 ; SecToLoad
-       call     Read.ReadSectors
-       ret
- 
+end virtual
 ;EOF

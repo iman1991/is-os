@@ -1,36 +1,33 @@
 ;macro.asm
+ 
        macro    keyWx {
-;       xor      eax,eax
-;       int      16h
+; xor eax,eax
+; int 16h
        }
  
+macro read42 { call ReadSectors }
  
 macro align value { rb (value-1) - ($ + value-1) mod value }
  
- 
- 
        macro    printDXstrDos {
 ;must be es=ds
-;       call     DosInt21h
+;push es
+;mov ah,9
+;int 21h
+;pop es
  
-       mov      ax,0
-       mov      si,dx
-       int      87h
- 
-;int 87h
-;call   PrintString09h
+        mov      ax,0
+        mov      si,dx
+        int      87h
  
        }
  
- 
        macro    DbgDsplALmm {
- 
        local    .outmacro, .msg, .lz1, .lz0
        cmp      al,'$'
        jnz      .lz0
        mov      al,'S'
 .lz0:
- 
        cmp      al,32
        jae      .lz1
        mov      al,'.'
@@ -45,7 +42,6 @@ db '$'
 .outmacro:
        }
  
- 
        macro    DbgDspl_si {
        local    .outmacroe, .msge, .lz11
 .lz11:
@@ -59,8 +55,6 @@ db '$'
        jz       .outmacroe
        cmp      al,10
        jz       .outmacroe
- 
- 
        push     si
        mov      [.msge],al
        mov      ah,9
@@ -73,13 +67,9 @@ db '$'
 .outmacroe:
        }
  
- 
- 
- 
        macro    DbgDspl str {
- 
        local    .outmacroEE, .msgEE
-pusha
+       pusha
        mov      ah,9
        mov      dx,.msgEE
        printDXstrDos ;int 21h
@@ -87,11 +77,10 @@ pusha
 .msgEE db str
 db '$'
 .outmacroEE:
-popa
+       popa
        }
  
        macro    DbgDsplLine {
- 
        local    .outmacro, .msg
        mov      ah,9
        mov      dx,.msg
@@ -102,15 +91,11 @@ db '$'
 .outmacro:
        }
  
- 
        macro    DbgDsplEAXh {
        local    .outmacro, .saveEAX
- 
        pusha
        mov      [.saveEAX],eax
- 
        call     CreateStringEAxHex
-; call Bin2AsciiDec
        mov      dx,si
        mov      ah,9
        printDXstrDos ;int 21h
@@ -119,30 +104,21 @@ db '$'
 .outmacro:
        popa
        mov      eax,[.saveEAX]
- 
        }
  
        macro    DbgDsplEAXh_prefix0x {
        local    .outmacro, .saveEAX, okRR, okRR2
- 
        pusha
        mov      [.saveEAX],eax
        shr      eax,28
        test     eax,eax
        jz       .okRR
- 
        DbgDspl  '0x0'
        jmp      .okRR2
- 
- 
 .okRR:
- 
        DbgDspl  '0x'
- 
 .okRR2:
- 
        mov      eax,[.saveEAX]
- 
        call     CreateStringEAxHex
 ; call Bin2AsciiDec
        mov      dx,si
@@ -153,16 +129,12 @@ db '$'
 .outmacro:
        popa
        mov      eax,[.saveEAX]
- 
        }
- 
  
        macro    DbgDsplALh {
        local    .outmacro, .saveEAX
- 
        pusha
        mov      [.saveEAX],eax
- 
        call     CreateStringAlHex
 ; call Bin2AsciiDec
        mov      dx,si
@@ -173,24 +145,12 @@ db '$'
 .outmacro:
        popa
        mov      eax,[.saveEAX]
- 
        }
- 
- 
- 
- 
- 
- 
- 
- 
- 
  
        macro    DbgDsplEAXdFIXsize {
        local    .outmacro, .saveEAX
- 
        pusha
        mov      [.saveEAX],eax
- 
        call     Bin2AsciiDecFIX
        mov      dx,si
        mov      ah,9
@@ -200,18 +160,12 @@ db '$'
 .outmacro:
        popa
        mov      eax,[.saveEAX]
- 
        }
- 
- 
  
        macro    DbgDsplEAXd {
        local    .outmacro, .saveEAX
- 
        pusha
        mov      [.saveEAX],eax
- 
-;call CreateStringEAxHex
        call     Bin2AsciiDec
        mov      dx,si
        mov      ah,9
@@ -221,15 +175,12 @@ db '$'
 .outmacro:
        popa
        mov      eax,[.saveEAX]
- 
        }
  
        macro    DbgDsplAXd {
        local    .outmacro, .saveEAX
- 
        pusha
        mov      [.saveEAX],eax
- 
        shl      eax,16
        shr      eax,16
 ;call CreateStringEAxHex
@@ -242,21 +193,12 @@ db '$'
 .outmacro:
        popa
        mov      eax,[.saveEAX]
- 
        }
- 
- 
- 
- 
- 
- 
  
        macro    DbgDsplAXh {
        local    .outmacro, .saveEAX
- 
        pusha
        mov      [.saveEAX],eax
- 
        call     CreateStringAxHex ;hex.asm
        mov      dx,si
        mov      ah,9
@@ -266,10 +208,7 @@ db '$'
 .outmacro:
        popa
        mov      eax,[.saveEAX]
- 
        }
- 
- 
  
        macro    PrintAX {
        pusha
@@ -278,68 +217,49 @@ db '$'
        DbgDsplAXh
        }
  
- 
- 
- 
-; macro    FatalError {
-;;PrintAX
-;mov bx,word [ptrErrorTramp]
-;jmp word bx
-;       }
- 
- 
        macro    PrintSegs { ;arg=ss,cs,ds,gs..
- 
        DbgDsplLine
- 
        DbgDsplLine
-       DbgDspl  '> * * * Runtime dump of segRegs : '
- 
- 
+DbgDspl '> * * * Runtime dump of segRegs : '
        DbgDsplLine
-DbgDspl '   ss: '
+DbgDspl ' ss: '
        push     ss
        pop      ax
- 
        DbgDsplAXh
 DbgDspl '/dec: '
        DbgDsplAXd
- 
- 
- 
        DbgDsplLine
-DbgDspl '   cs: '
+DbgDspl ' cs: '
        push     cs
        pop      ax
- 
        DbgDsplAXh
 DbgDspl '/dec: '
        DbgDsplAXd
- 
- 
- 
        DbgDsplLine
-DbgDspl '   es: '
+DbgDspl ' es: '
        push     es
        pop      ax
- 
        DbgDsplAXh
 DbgDspl '/dec: '
        DbgDsplAXd
- 
        DbgDsplLine
-DbgDspl '   ds: '
+DbgDspl ' ds: '
        push     ds
        pop      ax
- 
        DbgDsplAXh
 DbgDspl '/dec: '
        DbgDsplAXd
- 
- 
        DbgDsplLine
- 
        }
  
+macro CheckControlData {
+pushad
+mov eax,dword [ControlData]
+   DbgDsplEAXh
+xor ax,ax
+int 16h
+popad
+ 
+}
  
 ;EOF

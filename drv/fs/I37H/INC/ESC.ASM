@@ -2,7 +2,7 @@
  
  
 EscPressedCheck:
-;+ проверяем нажатие Esc
+;+check key pressed (Esc)
        pusha
  
        mov      ah,1 ;check to see if a char is ready
@@ -11,7 +11,7 @@ EscPressedCheck:
  
        mov      ah,0
        int      16h ;get the character & put in AX
-       cmp      ah,1 ;если не клавиша Esc ...
+       cmp      ah,1 ;=! Esc ...
        jnz      .ReadLoop ;nope, continue
  
        popa

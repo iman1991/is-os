@@ -1,8 +1,8 @@
 ;hook.asm
  
  
-;в регистре ax номер прерывания
-;в регистрах cs:bx адрес нового обработчика
+;ax = mun of interrupt
+;cs:bx = ptr to new handler
  
 hook:
        push     es
@@ -24,7 +24,7 @@ mov dword [es:bx],eax
        ret
  
 new_vector:
-dw new_handler;-100h
+dw new_handler
 dw 0
  
  

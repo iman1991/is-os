@@ -2,38 +2,38 @@
  
  
 CreateStringEAxHex:
-push ax
-shr eax,16
-call CreateStringAxHex
+       push     ax
+       shr      eax,16
+       call     CreateStringAxHex
  
-mov bx,.strBuf
-macro saveStrToBuf {
-mov al,[si]
-mov [bx],al
-inc si
-inc bx
-}
+       mov      bx,.strBuf
  
- saveStrToBuf
- saveStrToBuf
- saveStrToBuf
- saveStrToBuf
+       macro    saveStrToBuf {
+       mov      al,[si]
+       mov      [bx],al
+       inc      si
+       inc      bx
+       }
  
-pop ax
-push bx
-call CreateStringAxHex
-pop bx
+       saveStrToBuf
+       saveStrToBuf
+       saveStrToBuf
+       saveStrToBuf
  
- saveStrToBuf
- saveStrToBuf
- saveStrToBuf
- saveStrToBuf
+       pop      ax
+       push     bx
+       call     CreateStringAxHex
+       pop      bx
  
-mov al,'$'
-mov [bx],al
-mov si,.strBuf
-ret
+       saveStrToBuf
+       saveStrToBuf
+       saveStrToBuf
+       saveStrToBuf
  
+       mov      al,'$'
+       mov      [bx],al
+       mov      si,.strBuf
+       ret
  
 .strBuf rb 20
  
@@ -113,7 +113,7 @@ CreateStringAlHex:
        }
  
        mov      bx,ax
-       mov ah,al
+       mov      ah,al
        shr      ah,4
        mov      al,ah
        mov      ah,0
@@ -122,7 +122,7 @@ CreateStringAlHex:
        mov      al,[si]
        std_put1
        mov      ax,bx
-       mov ah,al
+       mov      ah,al
        shl      ah,4
        shr      ah,4
        mov      al,ah
@@ -144,8 +144,6 @@ CreateStringAlHex:
 .hex db '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
 .strBuf rb 10
 .i dw 0
- 
- 
  
  
 ;EOF

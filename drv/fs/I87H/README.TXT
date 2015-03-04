@@ -1,4 +1,4 @@
-readme.txt
+
  
 How to use:
  
@@ -10,4 +10,3 @@ How to use:
 msg db 'sample text$'
  
  
-EOF

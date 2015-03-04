@@ -24,9 +24,10 @@
        }
  
 new_handler:
-       pushf
-       pusha
+       pushad
+       push     es
        push     ds ;!saveall ds берёт из стека
+ 
        push     cs
        pop      ds
        saveall  ;сохраняем всё
@@ -38,8 +39,8 @@ new_handler:
  
 int_exit:
        pop      ds
-       popa
-       popf
+       pop      es
+       popad
        iret
  
  
