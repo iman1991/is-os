@@ -1,6 +1,6 @@
-size_str        equ 0xff ; размер блоков 
-count_mem       equ 0x303 ; количество блоков
-mem_tab         equ 0xfb00 ; адрес таблицы блоков 
+SIZE_BLOCK        equ 0xff ; размер блоков 
+COUNT_BLOCK       equ 0x303 ; количество блоков
+ADDR_TABLE         equ 0xfb00 ; адрес таблицы блоков 
 KERNEL_SEGMENT  equ 0x50 ; сегмент ядра 
 KERNEL_SIZE     equ 4096 ; размер ядра без драйверов 
 
