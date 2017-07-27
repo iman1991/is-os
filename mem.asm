@@ -1,4 +1,4 @@
-size_str        equ 0xff ;размер блоков 
+size_str        equ 0xff ; размер блоков 
 count_mem       equ 0x303 ; количество блоков
 mem_tab         equ 0xfb00 ; адрес таблицы блоков 
 KERNEL_SEGMENT  equ 0x50 ; сегмент ядра 
